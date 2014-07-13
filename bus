@@ -1,0 +1,181 @@
+#!/usr/bin/env python
+#coding: utf8
+
+import os
+import cgi
+import consultas
+from datetime import datetime
+
+
+today = datetime.now()
+Fecha= str(today.day)+"/" + str(today.month) +"/"+ str(today.year)
+
+
+print "Content-type:text/html\r\n\r\n"
+print "<!DOCTYPE html>"
+
+formul= cgi.FieldStorage()
+objInsert=consultas.vistas()
+estadoupdate=""
+
+try:
+	datosUpdate={'Idupdate': formul['clavebus'].value ,'dupdate': formul['destino_update'].value\
+	, 'fechaupdate':formul['Fecha_update'].value , 'Horaup': formul['Hora_update'].value , 'costoup': formul['costoupdate'].value }
+
+
+	#Id, destino, fecha, hora, costo
+	estadoupdate=objInsert.updateBus(datosUpdate['Idupdate'], datosUpdate['dupdate'],\
+	 datosUpdate['fechaupdate'] , datosUpdate['Horaup'] , datosUpdate['costoup'])
+	
+except Exception, e:
+	print ""
+	
+
+
+
+##Venta de buses
+T=""
+try:
+
+	datosdeventa={'destinoP': formul['destino_bus'].value , 'fechaD': formul['FechaB'].value \
+	,'HoraP': formul['Hora_partida'].value , 'costo':formul['costo_viaje'].value}
+	
+	T=objInsert.insertar_bus( datosdeventa['HoraP'],  datosdeventa['destinoP'] , datosdeventa['costo'], "Local", datosdeventa['fechaD'] )
+except Exception, e:
+	print ""
+
+
+
+print """<html>
+<head>
+<title> Sistema de buses por Medrano Salazar jonathan UNAM</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' type='text/css' href='http://127.0.0.1/proyectobus/estilosbase.css'>
+
+<script src='http://localhost/proyectobus/jquery-1.9.1.min.js'></script>	
+		<script type="text/javascript">
+			
+			$(document).on('ready', function(){
+
+					$('body').css('font-family', 'sans-serif','ubuntu', 'Comic Sans');
+					$('#listado').css('text-align' , 'left');
+					$('#titulo_tabla').css('margin-top' , '-8px');
+					$('h2').css('color' , '#0F878B');
+					$('#Fecha_actual').css('color' , 'white');
+					$('#Fecha_actual').css('text-align' , 'right');
+					$('#Fecha_actual').css('margin-right' , '10px');
+					$('#Fecha_actual').css('font-size' , '1.2em');
+					$('#report_ingreso_bus').css('color' ,'white');
+					$('#report_ingreso_bus').css('color' ,'blue');
+					$('#lidado_bus_actual').css('float', 'right');
+					$('#contenido').css('background', 'white');
+					$('#lidado_bus_actual').css('margin-top', '-270px');
+
+			});
+
+</script>
+
+</head>
+<body>
+
+
+<div id='contenidoHome'>
+<h1 id='titulo_header'>[MY BUS.........]</h1> 
+
+"""
+print  "<strong><p id='Fecha_actual'>" +  Fecha  + "</p></strong>"
+print """
+<div id='barra_navegacion'>
+					<strong><ul><a href="index2.py"><li>Home</li></a></ul></strong>
+					<strong><ul><a href="ventas.py"><li>Ventas</li></a></ul></strong>
+					<strong><ul><a href="reportesventas.py"><li>Reportes ventas</li></a></ul></strong>
+					<strong><ul><a href="bus.py"><li>Buses</li></a></ul></strong>
+					<strong><ul><a href=""><li>Promociones</li></a></ul></strong>		
+					<strong><ul><a href=""><li>Salir</li></a></ul></strong>
+
+</div>
+
+<div id="contenido">
+
+
+		<div id='crear_bus'>
+		<h2>CREAR BUS</h2>
+			<form action="bus.py" method="POST">
+				
+				<label>Destino:</label><br>
+				<input type='text' name='destino_bus' required placeholder='Acapulco'><br>
+				<label>Fecha de partida:</label><br>
+				<input type='date' name='FechaB'> </input><br>
+				<label>Hora de partida:</label><br>
+
+				<select name='Hora_partida'>"""
+
+a=0
+
+while a<=24:
+	print "<option value='"+str(a)+"'>" + str(a)+ "Hrs" + "</option>"
+	a+=1
+			
+print """
+				</select><br>
+				<label>Costo del viaje:</label><br>
+				<input type="number" name='costo_viaje' required placeholder='1100'><br>				
+				<input type="submit" value="Crear bus"><br>
+			</form>
+			"""
+
+print "<p id='report_ingreso_bus'>"+ T + "</p>"
+		
+
+
+
+
+print """<div id='lidado_bus_actual'>
+	<h2>Listado Actual</h2> """
+print estadoupdate+"<br>"
+print objInsert.getBuses()
+
+print """
+</div>	
+"""		
+
+print """	
+		
+	<div id='eliminar_bus'>
+		<h2>ACTUALIZAR DATOS</h2>
+		<form action="bus.py" method="POST">
+			<label>¿Que bus decea actualizar?</label><br>
+				<select name='clavebus'>
+					 """
+Ids= objInsert.getIDBuses()
+for x in Ids:
+	print "<option value ='"+x+"'>" + x + "</option>"
+		
+print """					
+					<option value='1'> 1<option>
+
+				</select><br>
+				<label>Destino:</label><br>
+				<input type='text' name='destino_update' required placeholder='Acapulco'><br>
+				<label>Fecha de partida:</label><br>
+				<input type='date' name='Fecha_update' required> </input><br>
+				<label>Hora de partida:</label><br>
+
+				<select name='Hora_update'>"""
+
+k=0
+while k<=24:
+	print "<option value='"+str(k)+"'>"+str(k) +"Hrs"+"</option>" 
+	k+=1
+	
+print """
+				</select><br>
+				<label>Costo</label>
+				<input type='number' name='costoupdate'></input>
+				<input type='submit' value='ACTUALIZAR'></input>
+		</form>
+	</div>		
+
+	</div>
+	</body>
+</html>"""
